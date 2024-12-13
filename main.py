@@ -5,15 +5,15 @@ WEBSITE_URL = "https://bocaodientu.dkkd.gov.vn/egazette/Forms/Egazette/ANNOUNCEM
 WEBSITE_KEY = "6LewYU4UAAAAAD9dQ51Cj_A_1uHLOXw9wJIxi9x0"
 
 api = NextCaptchaAPI(client_key=CLIENT_KEY)
-result = api.recaptchav2(website_url=WEBSITE_URL, website_key=WEBSITE_KEY)
+# result = api.recaptchav2(website_url=WEBSITE_URL, website_key=WEBSITE_KEY)
 
-if result["status"] == "ready":
-    print(f"reCAPTCHA solved: {result['solution']}")
-else:
-    print(f"Failed to solve reCAPTCHA: {result['error']}")
+# if result["status"] == "ready":
+#     print(f"reCAPTCHA solved: {result['solution']}")
+# else:
+#     print(f"Failed to solve reCAPTCHA: {result['error']}")
     
 def create_captcha_resolve():
     result = api.recaptchav2(website_url=WEBSITE_URL, website_key=WEBSITE_KEY)
-    return result["solution"].gRecaptchaResponse
+    return result["solution"].get('gRecaptchaResponse')
 if __name__ == "__main__":
     print(create_captcha_resolve())
