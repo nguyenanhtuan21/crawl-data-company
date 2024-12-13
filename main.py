@@ -11,3 +11,9 @@ if result["status"] == "ready":
     print(f"reCAPTCHA solved: {result['solution']}")
 else:
     print(f"Failed to solve reCAPTCHA: {result['error']}")
+    
+def create_captcha_resolve():
+    result = api.recaptchav2(website_url=WEBSITE_URL, website_key=WEBSITE_KEY)
+    return result["solution"].gRecaptchaResponse
+if __name__ == "__main__":
+    print(create_captcha_resolve())
