@@ -1,82 +1,64 @@
-import csv
-from PyPDF2 import PdfReader
+from pdf2image import convert_from_path
+import pytesseract
+from PIL import Image
 import re
 
+# Cấu hình đường dẫn tới tesseract (nếu sử dụng Windows)
+# Chỉ cần bỏ dòng dưới nếu bạn đang dùng Linux hoặc macOS
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Đường dẫn tới tesseract.exe trên Windows
+
+# Chuyển PDF thành hình ảnh
+def pdf_to_image(pdf_path):
+    images = convert_from_path(pdf_path)
+    return images
+
+# Áp dụng OCR để trích xuất văn bản từ hình ảnh
+def ocr_from_image(images):
+    text = ""
+    for img in images:
+        text += pytesseract.image_to_string(img, lang='vie')  # Sử dụng ngôn ngữ tiếng Việt nếu có
+    return text
+
+# Đọc file PDF và trích xuất văn bản
+def extract_pdf_content(pdf_path):
+    images = pdf_to_image(pdf_path)
+    text = ocr_from_image(images)
+    return text
+
+# Tìm Mã số doanh nghiệp
+def find_business_code(content):
+    match = re.search(r"Mã số doanh nghiệp[:\s]*([\d]+)", content)
+    return match.group(1) if match else "No information"
+
+# Tìm tên công ty viết bằng tiếng Việt
+def find_company_name_vietnamese(content):
+    match = re.search(r"Tên công ty viết bằng tiếng Việt[:\s]*(CÔNG TY [\w\s]+)", content)
+    return match.group(1) if match else "No information"
+
+# Tìm Email
+def find_email(content):
+    match = re.search(r"Email[:\s]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", content)
+    return match.group(1) if match else "No information"
+
+# Tìm số điện thoại
+def find_phone(content):
+    match = re.search(r"Điện thoại[:\s]*([\d\+]+)", content)
+    return match.group(1) if match else "No information"
+
+
 # Đường dẫn đến file PDF
-pdf_file = "data/output.pdf"  # Đổi thành file PDF của bạn
-csv_file = "business_info_extracted.csv"  # File CSV đầu ra
+pdf_file = 'data/0110632065.pdf'  # Thay thế bằng đường dẫn tới file PDF của bạn
 
-# Đọc nội dung file PDF
-reader = PdfReader(pdf_file)
-text = ""
-for page in reader.pages:
-    text += page.extract_text()
+# Trích xuất nội dung và in ra
+content = extract_pdf_content(pdf_file)
+business_code = find_business_code(content)
+company_name_vn = find_company_name_vietnamese(content)
+email = find_email(content)
+phone = find_phone(content)
 
-# Trích xuất thông tin từ nội dung PDF
-data = {
-    "Tên công ty viết bằng tiếng Việt": re.search(r"Tên công ty.*?\n(.*)", text, re.IGNORECASE),
-    "Tên công ty viết bằng tiếng nước ngoài": re.search(r"Tên tiếng nước ngoài.*?\n(.*)", text, re.IGNORECASE),
-    "Tên công ty viết tắt": re.search(r"Tên viết tắt.*?\n(.*)", text, re.IGNORECASE),
-    "Mã số doanh nghiệp": re.search(r"Mã số doanh nghiệp.*?(\d+)", text),
-    "Địa chỉ trụ sở chính": re.search(r"Địa chỉ trụ sở chính.*?\n(.*)", text, re.IGNORECASE),
-    "Ngày thành lập": re.search(r"Ngày thành lập.*?(\d{2}/\d{2}/\d{4})", text),
-    "Vốn điều lệ": re.search(r"Vốn điều lệ.*?\n(.*)", text, re.IGNORECASE),
-    "Số điện thoại": re.search(r"Điện thoại.*?(\d{10,11})", text),
-    "Email": re.search(r"Email.*?([\w.-]+@[\w.-]+)", text),
-    "Ngành, nghề kinh doanh": re.findall(r"(\d+)\s-\s(.*)", text),
-    "Người đại diện": {
-        "Họ và tên": re.search(r"Họ và tên người đại diện.*?\n(.*)", text, re.IGNORECASE),
-        "Giới tính": re.search(r"Giới tính.*?(Nam|Nữ)", text, re.IGNORECASE),
-        "Ngày sinh": re.search(r"Ngày sinh.*?(\d{2}/\d{2}/\d{4})", text),
-        "Dân tộc": re.search(r"Dân tộc.*?\n(.*)", text, re.IGNORECASE),
-        "Quốc tịch": re.search(r"Quốc tịch.*?\n(.*)", text, re.IGNORECASE),
-        "Loại giấy tờ pháp lý": re.search(r"Loại giấy tờ pháp lý.*?\n(.*)", text, re.IGNORECASE),
-        "Số giấy tờ pháp lý": re.search(r"Số giấy tờ pháp lý.*?(\d+)", text),
-        "Ngày cấp": re.search(r"Ngày cấp.*?(\d{2}/\d{2}/\d{4})", text),
-        "Nơi cấp": re.search(r"Nơi cấp.*?\n(.*)", text, re.IGNORECASE),
-        "Địa chỉ thường trú": re.search(r"Địa chỉ thường trú.*?\n(.*)", text, re.IGNORECASE),
-        "Địa chỉ liên lạc": re.search(r"Địa chỉ liên lạc.*?\n(.*)", text, re.IGNORECASE),
-    },
-    "Nơi đăng ký": re.search(r"Nơi đăng ký.*?\n(.*)", text, re.IGNORECASE),
-    "Thời gian đăng": re.search(r"Thời gian đăng.*?\n(.*)", text, re.IGNORECASE)
-}
+# print(content)
 
-# Làm sạch kết quả (lấy group 1 nếu có)
-for key, value in data.items():
-    if isinstance(value, re.Match):
-        data[key] = value.group(1).strip()
-    elif isinstance(value, list):  # Với danh sách ngành nghề
-        data[key] = [{"Mã ngành": i[0], "Tên ngành": i[1]} for i in value]
-    elif isinstance(value, dict):  # Với thông tin người đại diện
-        for sub_key, sub_value in value.items():
-            if isinstance(sub_value, re.Match):
-                data[key][sub_key] = sub_value.group(1).strip()
-            else:
-                data[key][sub_key] = ""
-
-# Ghi dữ liệu vào file CSV
-with open(csv_file, mode='w', encoding='utf-8', newline='') as file:
-    writer = csv.writer(file)
-    
-    # Ghi thông tin chung
-    writer.writerow(["Thông tin", "Chi tiết"])
-    for key in ["Tên công ty viết bằng tiếng Việt", "Tên công ty viết bằng tiếng nước ngoài", "Tên công ty viết tắt", 
-                "Mã số doanh nghiệp", "Địa chỉ trụ sở chính", "Ngày thành lập", "Vốn điều lệ", "Số điện thoại", "Email"]:
-        writer.writerow([key, data.get(key, "")])
-    
-    # Ghi ngành nghề kinh doanh
-    writer.writerow(["Ngành, nghề kinh doanh", ""])
-    writer.writerow(["Mã ngành", "Tên ngành"])
-    for industry in data["Ngành, nghề kinh doanh"]:
-        writer.writerow([industry["Mã ngành"], industry["Tên ngành"]])
-    
-    # Ghi thông tin người đại diện
-    writer.writerow(["Người đại diện", ""])
-    for sub_key, sub_value in data["Người đại diện"].items():
-        writer.writerow([sub_key, sub_value])
-    
-    # Ghi nơi đăng ký và thời gian đăng
-    writer.writerow(["Nơi đăng ký", data["Nơi đăng ký"]])
-    writer.writerow(["Thời gian đăng", data["Thời gian đăng"]])
-
-print(f"Dữ liệu đã được lưu vào file '{csv_file}'")
+print(f"Mã số doanh nghiệp: {business_code}")
+print(f"Tên công ty viết bằng tiếng Việt: {company_name_vn}")
+print(f"Email: {email}")
+print(f"Điện thoại: {phone}")

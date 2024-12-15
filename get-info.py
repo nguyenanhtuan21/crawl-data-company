@@ -38,7 +38,7 @@ def load_csv():
         for row in csv_reader:
             # Giả sử tên cột mã số thuế là 'Mã số thuế'
             tax_codes.append(row['taxcode'])  # Thêm giá trị của cột 'Mã số thuế' vào mảng
-            if len(tax_codes) > 10:
+            if len(tax_codes) > 50:
                 break
     return tax_codes
 
