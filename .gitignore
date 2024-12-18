@@ -1,0 +1,29 @@
+# Bỏ qua thư mục chứa dữ liệu
+data/
+data2/
+
+# Bỏ qua các file và thư mục do Python sinh ra
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Bỏ qua file logs
+*.log
+
+# Bỏ qua các file môi trường ảo
+venv/
+env/
+.venv/
+.env/
+
+# Bỏ qua các file cấu hình IDE (ví dụ: VSCode, PyCharm)
+.vscode/
+.idea/
+
+# Bỏ qua các file tạm thời của hệ điều hành
+.DS_Store
+Thumbs.db
+

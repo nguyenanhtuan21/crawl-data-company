@@ -4,6 +4,7 @@ import pytesseract
 from PIL import Image
 import re
 import csv
+import logging
 
 # Cấu hình đường dẫn tới tesseract (nếu sử dụng Windows)
 # Chỉ cần bỏ dòng dưới nếu bạn đang dùng Linux hoặc macOS
@@ -76,13 +77,15 @@ def process_pdfs_in_directory(directory_path):
                     'Điện thoại': phone
                 })
                 print(f"Data extracted: {company_name_vn}, {email}, {phone}")
+                logging.info(f"Data extracted: {company_name_vn}, {email}, {phone}")
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
+                logging.error(f"Error processing {filename}: {e}")
     
     # Kiểm tra nếu có dữ liệu để lưu vào CSV
     if result_data:
         # Ghi kết quả vào file CSV bằng thư viện csv
-        csv_file = 'output_file.csv'
+        csv_file = 'outputfile_2.csv'
         with open(csv_file, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.DictWriter(file, fieldnames=['Mã số doanh nghiệp', 'Tên công ty viết bằng tiếng Việt', 'Email', 'Điện thoại'])
             writer.writeheader()  # Ghi header vào file CSV
@@ -95,5 +98,4 @@ def process_pdfs_in_directory(directory_path):
 directory_path = '/Users/tuannguyenanh/code/crawl-data-company/data/'  # Thay thế bằng đường dẫn tới thư mục chứa các file PDF của bạn
 
 # Xử lý tất cả các file PDF trong thư mục
-# process_pdfs_in_directory(directory_path)
-print(extract_pdf_content('/Users/tuannguyenanh/code/crawl-data-company/data2/5100498349.pdf'))
+process_pdfs_in_directory(directory_path)
